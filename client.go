@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/fsouza/go-dockerclient/utils"
 	"io"
 	"io/ioutil"
 	"net"
@@ -23,6 +22,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/fsouza/go-dockerclient/utils"
 )
 
 const userAgent = "go-dockerclient"
@@ -41,7 +42,7 @@ type Client struct {
 	endpoint     string
 	endpointURL  *url.URL
 	eventMonitor *eventMonitoringState
-	client       *http.Client
+	*http.Client
 }
 
 // NewClient returns a Client instance ready for communication with the
@@ -54,7 +55,7 @@ func NewClient(endpoint string) (*Client, error) {
 	return &Client{
 		endpoint:     endpoint,
 		endpointURL:  u,
-		client:       http.DefaultClient,
+		Client:       http.DefaultClient,
 		eventMonitor: new(eventMonitoringState),
 	}, nil
 }
@@ -90,7 +91,7 @@ func (c *Client) do(method, path string, data interface{}) ([]byte, int, error) 
 		resp, err = clientconn.Do(req)
 		defer clientconn.Close()
 	} else {
-		resp, err = c.client.Do(req)
+		resp, err = c.Do(req)
 	}
 	if err != nil {
 		if strings.Contains(err.Error(), "connection refused") {
@@ -139,7 +140,7 @@ func (c *Client) stream(method, path string, headers map[string]string, in io.Re
 		resp, err = clientconn.Do(req)
 		defer clientconn.Close()
 	} else {
-		resp, err = c.client.Do(req)
+		resp, err = c.Do(req)
 	}
 	if err != nil {
 		if strings.Contains(err.Error(), "connection refused") {
